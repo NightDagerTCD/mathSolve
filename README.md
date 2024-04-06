@@ -1,5 +1,7 @@
 Download either sovler 1 or 2, mostly working on 1 since that'll be more useful since OCR crap and stuff isn't that good.
 
+--
+
 Solver 1
 
 Basically, we be having the extension identify the question (after hours of me scanning the html), then we gonna run it into some big companies AI API to solve it
@@ -9,6 +11,7 @@ So far, got it to identify sub/superscript (SScript) by checking the change in f
 
 Next trying to get fractions by checking the positioning of the numbers.
 
+--
 
 Solver 2
 
