@@ -1,56 +1,89 @@
-chrome.runtime.onMessage.addListener(
-  function(request, sender, sendResponse) {
-    if (request.action === "fetchQuestionAndExpression") {
-      extractQuestionAndExpression();
-    }
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action === "fetchQuestionAndExpression") {
+    extractQuestionAndExpression();
   }
-);
+});
 
 function extractQuestionAndExpression() {
-  // Extracting the main question prompt
   const questionPrompt = document.querySelector("#algoPrompt")?.textContent.trim() || "Question prompt not found.";
-
   let expression = "";
-  let tempSubSup = ""; // Temporary string for consecutive superscripts/subscripts
-  let lastFontSize = 0; // Track the last font size to detect changes
+  let lastFontSize = 0;
+  let elementsProcessed = new Set();
 
   const expressionComponents = document.querySelectorAll(".statement_body .AnsedObject");
-  
+
   expressionComponents.forEach((component, index) => {
+    // Skip if already processed as part of a fraction
+    if (elementsProcessed.has(component)) return;
+
     const style = window.getComputedStyle(component);
     const fontSize = parseInt(style.fontSize, 10);
     const text = component.textContent.trim();
 
-    // Check if it's super/subscript (SScript) by checking font size
-    if (fontSize !== lastFontSize && tempSubSup) {
-      // Finish SScript seq
-      expression += `^{${tempSubSup}} `;
-      tempSubSup = ""; // Reset for the next sequence
-    }
-
-    if (fontSize > 12) {
-      if (tempSubSup) { // End SScript Sequence
-        expression += `^{${tempSubSup}}`; // Append SScript
-        tempSubSup = ""; // Reset
+    // Check for fractions
+    if (isNumeric(text)) {
+      const {numerator, denominator, denominatorComponent} = findFraction(component, expressionComponents);
+      if (numerator && denominator) {
+        expression += `${numerator}/${denominator} `;
+        elementsProcessed.add(denominatorComponent); // Mark denominator as processed
+        return; // Skip further processing for this component
       }
-      expression += `${text} `;
-    } else { // Smaller font size indicates a super/subscript
-      tempSubSup += text;
     }
 
-    // Prepare for next iteration
+    // Process non-fraction components (normal text and potential superscripts/subscripts)
+    if (fontSize !== lastFontSize) {
+      if (fontSize > 12) {
+        expression += text + " ";
+      } else { // Treat as subscript/superscript
+        expression += `^{${text}} `;
+      }
+    } else {
+      expression += text + " ";
+    }
     lastFontSize = fontSize;
-
-    // If last component and there's an SScript, append that shit
-    if (index === expressionComponents.length - 1 && tempSubSup) {
-      expression += `^{${tempSubSup}} `;
-    }
   });
 
   if (!expression) {
     expression = "Expression not found.";
   }
 
-  // Display for debugging and testing all this code before integrating the API
   alert(`Question: ${questionPrompt}\nExpression: ${expression.trim()}`);
+}
+
+function findFraction(numeratorElement, elements) {
+  const numeratorPos = getElementPosition(numeratorElement);
+  let closestDenominator = {distance: Infinity, element: null};
+
+  elements.forEach(element => {
+    if (element === numeratorElement || !isNumeric(element.textContent.trim())) return;
+
+    const elementPos = getElementPosition(element);
+    if (numeratorPos.left === elementPos.left && elementPos.top > numeratorPos.top) { // Vertically aligned and below
+      const distance = elementPos.top - numeratorPos.top;
+      if (distance < closestDenominator.distance) {
+        closestDenominator = {distance, element};
+      }
+    }
+  });
+
+  if (closestDenominator.element) {
+    return {
+      numerator: numeratorElement.textContent.trim(),
+      denominator: closestDenominator.element.textContent.trim(),
+      denominatorComponent: closestDenominator.element
+    };
+  }
+
+  return {};
+}
+
+function getElementPosition(element) {
+  const style = window.getComputedStyle(element);
+  const left = parseFloat(style.left);
+  const top = parseFloat(style.top);
+  return {left, top};
+}
+
+function isNumeric(str) {
+  return !isNaN(str) && !isNaN(parseFloat(str));
 }
