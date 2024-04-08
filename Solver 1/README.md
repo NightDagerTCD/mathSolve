@@ -5,4 +5,6 @@ End goal is to have it give the answer right away (or at least something useable
 
 So far, got it to identify sub/superscript (SScript) by checking the change in font, since regular is usually like 15px while the SScripts are 12px
 
-Next trying to get fractions by checking the positioning of the numbers.
+~~Next trying to get fractions by checking the positioning of the numbers.~~
+
+Got fractions working by finally after like hours. Now I gotta get things in the aleks API or whatever they're using, to get things like sqrts and stuff how am i meant to do this somebody help me
