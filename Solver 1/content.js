@@ -6,6 +6,48 @@ chrome.runtime.onMessage.addListener(
   }
 );
 
+// Find fractions omfg this too forever for me to figure out wtf
+function findFraction(numeratorElement, elements) {
+  const numeratorPos = getElementPosition(numeratorElement);
+  let closestDenominator = {distance: Infinity, element: null};
+
+  elements.forEach(element => {
+    if (element === numeratorElement || !isNumeric(element.textContent.trim())) return;
+
+    const elementPos = getElementPosition(element);
+    // Check for vertical alignment and below position
+    if (numeratorPos.left === elementPos.left && elementPos.top > numeratorPos.top) {
+      const distance = elementPos.top - numeratorPos.top;
+      if (distance < closestDenominator.distance) {
+        closestDenominator = {distance, element};
+      }
+    }
+  });
+
+  if (closestDenominator.element) {
+    return {
+      numerator: numeratorElement.textContent.trim(),
+      denominator: closestDenominator.element.textContent.trim(),
+      denominatorComponent: closestDenominator.element
+    };
+  }
+
+  return {};
+}
+
+// Get computed position of an element
+function getElementPosition(element) {
+  const style = window.getComputedStyle(element);
+  const left = parseFloat(style.left);
+  const top = parseFloat(style.top);
+  return {left, top};
+}
+
+// Check if a string is actually a number value :I
+function isNumeric(str) {
+  return !isNaN(str) && !isNaN(parseFloat(str));
+}
+
 function extractQuestionAndExpression() {
   // Extracting
   const questionPrompt = document.querySelector("#algoPrompt")?.textContent.trim() || "Question prompt not found.";
@@ -67,46 +109,4 @@ function extractQuestionAndExpression() {
 
   // Output for debugging/testing before API integration -- somebody remember to remove this once it's integrated
   alert(`Question: ${questionPrompt}\nExpression: ${expression.trim()}`);
-}
-
-// Find fractions omfg this too forever for me to figure out wtf
-function findFraction(numeratorElement, elements) {
-  const numeratorPos = getElementPosition(numeratorElement);
-  let closestDenominator = {distance: Infinity, element: null};
-
-  elements.forEach(element => {
-    if (element === numeratorElement || !isNumeric(element.textContent.trim())) return;
-
-    const elementPos = getElementPosition(element);
-    // Check for vertical alignment and below position
-    if (numeratorPos.left === elementPos.left && elementPos.top > numeratorPos.top) {
-      const distance = elementPos.top - numeratorPos.top;
-      if (distance < closestDenominator.distance) {
-        closestDenominator = {distance, element};
-      }
-    }
-  });
-
-  if (closestDenominator.element) {
-    return {
-      numerator: numeratorElement.textContent.trim(),
-      denominator: closestDenominator.element.textContent.trim(),
-      denominatorComponent: closestDenominator.element
-    };
-  }
-
-  return {};
-}
-
-// Get computed position of an element
-function getElementPosition(element) {
-  const style = window.getComputedStyle(element);
-  const left = parseFloat(style.left);
-  const top = parseFloat(style.top);
-  return {left, top};
-}
-
-// Check if a string is actually a number value :I
-function isNumeric(str) {
-  return !isNaN(str) && !isNaN(parseFloat(str));
 }
