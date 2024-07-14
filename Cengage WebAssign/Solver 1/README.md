@@ -1,5 +1,6 @@
 Solver 1
 Able to do fractions, subscripts, and copy the entire webpage for now.
+Maybe integrate GPT API into it, like the original plan, or at least to make the context better for a solver or calculator to understand.
 
 BIG POGRESS MADE
 
