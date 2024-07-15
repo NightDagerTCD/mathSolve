@@ -46,10 +46,13 @@ function extractQuestions() {
   return formattedQuestions;
 }
 
-// Extract questions and copy them to the clipboard
-const questions = extractQuestions();
-navigator.clipboard.writeText(questions).then(() => {
-  alert('Questions copied to clipboard!');
-}).catch(err => {
-  console.error('Failed to copy questions: ', err);
-});
+// Function to open new window with questions
+function openQuestionsInNewWindow() {
+  const questions = extractQuestions();
+  const newWindow = window.open('', '_blank');
+  newWindow.document.write(`<pre>${questions}</pre>`);
+  newWindow.document.close();
+}
+
+// Call the function to open new window
+openQuestionsInNewWindow();
