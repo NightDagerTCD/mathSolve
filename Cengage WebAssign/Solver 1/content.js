@@ -20,6 +20,11 @@ function extractQuestions() {
       return `^${content.trim()}`;
     });
 
+    // Replace square roots
+    questionText = questionText.replace(/<table class="watexsqrt">.*?<td class="watexsqrtradical">.*?<\/td>.*?<td class="watexsqrtradicand">(.*?)<\/td>.*?<\/table>/g, (match, radicand) => {
+      return `√(${radicand.trim()})`;
+    });
+
     // Replace other specific HTML elements as needed (e.g., emphasized text)
     questionText = questionText.replace(/<em>(.*?)<\/em>/g, (match, content) => {
       return content.trim();
@@ -39,6 +44,13 @@ function extractQuestions() {
 
     // Replace HTML entities like &nbsp; with a space
     questionText = questionText.replace(/&nbsp;/g, " ");
+
+    // Check for diagrams within the question
+    const diagram = question.closest('.studentQuestionBox').querySelector('figure');
+    if (diagram) {
+      const description = diagram.querySelector('figcaption .desc')?.innerText || 'No description available';
+      questionText += `\n\nDiagram: ${description.trim()}`;
+    }
 
     formattedQuestions += `Question ${index + 1}:\n${questionText.trim()}\n\n`;
   });
